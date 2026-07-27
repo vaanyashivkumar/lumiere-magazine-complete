@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-flip="landscape">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12100f">
+  <script>
+    /* Set page-layout mode before first paint so CSS and the flip engine agree. */
+    document.documentElement.setAttribute("data-flip", window.innerWidth <= 900 ? "portrait" : "landscape");
+  </script>
+  <title>Lumiere Magazine — Flipbook</title>
+  <meta name="description" content="Lumiere digital magazine — interactive flipbook.">
+
+  <!-- PWA / mobile-app -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon-64.png" sizes="64x64">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lumiere">
+
+  <link rel="stylesheet" href="flipbook.css">
+</head>
+
+<body>
+  <main class="viewer" id="viewer">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <div><strong>Lumiere</strong><small>Digital magazine</small></div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button>
+        <output id="zoomValue" aria-live="polite">100%</output>
+        <button class="icon-button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+        <button class="icon-button" id="fullscreen" aria-label="Enter fullscreen" title="Fullscreen">⛶</button>
+      </div>
+    </header>
+
+    <section class="stage" id="stage" aria-label="Lumiere magazine flipbook">
+      <div class="book-wrap" id="bookWrap">
+        <div class="book" id="book" role="group" aria-roledescription="flipbook" aria-label="Lumiere magazine"></div>
+      </div>
+      <button class="page-arrow previous" id="previous" aria-label="Previous page"><span>‹</span></button>
+      <button class="page-arrow next" id="next" aria-label="Next page"><span>›</span></button>
+      <div class="hint" id="hint">Swipe, drag a corner, or use the arrows</div>
+    </section>
+
+    <footer class="controls">
+      <button class="text-button" id="first">First</button>
+      <button class="transport" id="footerPrevious" aria-label="Previous page">‹</button>
+      <label class="progress-group">
+        <span id="pageLabel">Cover</span>
+        <input id="progress" type="range" min="0" max="91" value="0" aria-label="Magazine position">
+      </label>
+      <button class="transport" id="footerNext" aria-label="Next page">›</button>
+      <button class="text-button" id="last">Last</button>
+    </footer>
+  </main>
+  <noscript>This flipbook requires JavaScript to display the magazine.</noscript>
+
+  <script src="vendor/page-flip.browser.js"></script>
+  <script src="flipbook.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+    }
+  </script>
+</body>
+
+</html>

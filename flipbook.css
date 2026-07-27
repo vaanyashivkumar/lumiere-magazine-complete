@@ -1,0 +1,159 @@
+:root {
+  color-scheme: dark;
+  --paper-ratio: 0.7068;
+  --accent: #d9b86c;
+  --chrome: rgba(21, 19, 18, 0.88);
+  --muted: #a8a4a0;
+  --zoom: 1;
+}
+
+* { box-sizing: border-box; }
+
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+
+body {
+  background: #12100f;
+  color: #f6f3ee;
+  font: 14px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button, input { font: inherit; }
+button { color: inherit; }
+
+.viewer {
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 64px 1fr 74px;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(92, 78, 60, .25), transparent 36%),
+    linear-gradient(145deg, #211e1b, #0d0c0b 75%);
+}
+
+.topbar, .controls {
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  background: var(--chrome);
+  backdrop-filter: blur(16px);
+  border-color: rgba(255,255,255,.08);
+}
+
+.topbar { justify-content: space-between; padding: 0 24px; padding-top: env(safe-area-inset-top); border-bottom: 1px solid rgba(255,255,255,.08); }
+.brand { display: flex; align-items: center; gap: 11px; letter-spacing: .02em; }
+.brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--accent); color: var(--accent); font: 22px/1 Georgia, serif; }
+.brand strong, .brand small { display: block; }
+.brand strong { font: 17px/1.15 Georgia, serif; letter-spacing: .08em; text-transform: uppercase; }
+.brand small { margin-top: 3px; color: var(--muted); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.top-actions { display: flex; align-items: center; gap: 6px; }
+.top-actions output { min-width: 46px; color: var(--muted); text-align: center; font-size: 12px; }
+
+.icon-button, .transport, .text-button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+.icon-button { width: 36px; height: 36px; border-radius: 50%; font-size: 19px; }
+.icon-button:hover, .transport:hover, .text-button:hover { color: var(--accent); background: rgba(255,255,255,.07); }
+.icon-button:active, .transport:active { transform: scale(.92); }
+
+.stage { position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden; perspective: 2200px; }
+.book-wrap {
+  --page-h: min(calc(100dvh - 190px), calc((100vw - 150px) / (2 * var(--paper-ratio))));
+  --page-w: calc(var(--page-h) * var(--paper-ratio));
+  position: relative;
+  width: calc(var(--page-w) * 2);
+  height: var(--page-h);
+  transform: scale(var(--zoom));
+  transition: transform .22s ease;
+}
+.book {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 22px 28px rgba(0,0,0,.52));
+}
+
+.book canvas { filter: saturate(1.01); }
+.book .stf__wrapper { background: transparent !important; }
+.magazine-page {
+  overflow: hidden;
+  background: #fff;
+}
+.magazine-page img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: auto;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.book-wrap.at-front:not(.is-flipping) .book { clip-path: inset(0 0 0 50%); }
+.book-wrap.at-back:not(.is-flipping) .book { clip-path: inset(0 50% 0 0); }
+
+/* Single-page (portrait) layout — JS sets data-flip so CSS and the engine always agree */
+:root[data-flip="portrait"] .book-wrap {
+  --page-w: min(calc(100vw - 20px), calc((100dvh - 150px) * var(--paper-ratio)));
+  --page-h: calc(var(--page-w) / var(--paper-ratio));
+  width: var(--page-w);
+  height: var(--page-h);
+}
+:root[data-flip="portrait"] .book-wrap.at-front:not(.is-flipping) .book,
+:root[data-flip="portrait"] .book-wrap.at-back:not(.is-flipping) .book { clip-path: none; }
+
+.page-arrow {
+  position: absolute;
+  z-index: 90;
+  top: 50%;
+  width: 54px; height: 76px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  background: rgba(15,14,13,.42);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: opacity .2s, background .2s, transform .2s;
+}
+.page-arrow span { display: block; margin-top: -5px; font: 48px/1 Georgia, serif; }
+.page-arrow.previous { left: 18px; }
+.page-arrow.next { right: 18px; }
+.page-arrow:hover { background: rgba(217,184,108,.2); border-color: rgba(217,184,108,.5); transform: translateY(-50%) scale(1.05); }
+.page-arrow:disabled { opacity: .15; cursor: default; }
+
+.hint { position: absolute; bottom: 14px; color: rgba(255,255,255,.5); font-size: 11px; letter-spacing: .05em; transition: opacity .6s; }
+.hint.hidden { opacity: 0; }
+
+.controls { justify-content: center; gap: 10px; padding: 12px 22px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(255,255,255,.08); }
+.transport { width: 42px; height: 42px; border-radius: 50%; font: 31px/1 Georgia, serif; }
+.text-button { padding: 8px 12px; border-radius: 8px; color: var(--muted); font-size: 12px; }
+.progress-group { width: min(460px, 46vw); display: grid; gap: 8px; text-align: center; }
+.progress-group span { color: #d7d2cb; font-size: 11px; letter-spacing: .05em; }
+input[type="range"] { width: 100%; height: 3px; accent-color: var(--accent); cursor: pointer; }
+
+/* ---------- MOBILE / narrow: single-page view ---------- */
+/* Cosmetic-only adjustments for narrow screens (page layout is handled by data-flip above) */
+@media (max-width: 900px) {
+  .viewer { grid-template-rows: 54px 1fr 66px; }
+  .topbar { padding: 0 12px; padding-top: env(safe-area-inset-top); }
+  .brand small { display: none; }
+
+  .page-arrow { width: 40px; height: 58px; border: 0; background: transparent; }
+  .page-arrow.previous { left: 0; }
+  .page-arrow.next { right: 0; }
+  .page-arrow span { font-size: 38px; text-shadow: 0 2px 8px #000; }
+  .controls { gap: 2px; padding-inline: 6px; }
+  .text-button { display: none; }
+  .hint { display: none; }
+  .top-actions output { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}

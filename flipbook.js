@@ -76,6 +76,7 @@
     }
     mode = nextMode;
     document.documentElement.setAttribute("data-flip", mode); // keep CSS container in sync
+    void bookElement.offsetWidth; // flush layout so the engine measures the NEW container size
 
     const pages = buildPages();
     pageFlip = new St.PageFlip(bookElement, {
@@ -83,9 +84,9 @@
       height: 842,
       size: "stretch",
       minWidth: 280,
-      maxWidth: 2000,
+      maxWidth: 1400,
       minHeight: 396,
-      maxHeight: 2830,
+      maxHeight: 1980,
       showCover: true,
       usePortrait: portrait,       // true => single page on phones
       drawShadow: true,
@@ -100,6 +101,15 @@
       disableFlipByClick: false
     });
     pageFlip.loadFromHTML(pages);
+
+    // The engine occasionally renders before the container/images have their final size.
+    // Nudge it to recompute (stretch mode re-fits on window resize) after layout settles.
+    const refit = () => { try { window.dispatchEvent(new Event("resize")); } catch (e) {} };
+    requestAnimationFrame(refit);
+    setTimeout(refit, 160);
+    setTimeout(refit, 450);
+    const firstImg = bookElement.querySelector("img");
+    if (firstImg && !firstImg.complete) firstImg.addEventListener("load", refit, { once: true });
 
     pageFlip.on("flip", () => {
       hint.classList.add("hidden");
@@ -158,8 +168,9 @@
   window.addEventListener("resize", () => {
     clearTimeout(rz);
     rz = setTimeout(() => {
+      // Rebuild only when crossing the mobile/desktop breakpoint; the engine re-fits
+      // same-mode resizes itself (stretch mode listens to window resize).
       if (wantsPortrait() !== (mode === "portrait")) initFlip();
-      else if (pageFlip) { try { pageFlip.update(); } catch (e) {} }
     }, 180);
   });
   window.addEventListener("orientationchange", () => setTimeout(initFlip, 260));

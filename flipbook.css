@@ -103,6 +103,8 @@ button { color: inherit; }
 :root[data-flip="portrait"] .book-wrap {
   position: absolute;
   inset: 0;
+  width: auto;
+  height: auto;
   transform: none;
 }
 :root[data-flip="portrait"] .book {

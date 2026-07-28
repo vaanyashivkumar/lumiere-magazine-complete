@@ -78,13 +78,22 @@
     pageLabel.textContent = pageText(index);
     previousButtons.forEach(button => { button.disabled = index <= 0; });
     nextButtons.forEach(button => { button.disabled = index >= PAGE_COUNT - 1; });
-    bookWrap.classList.toggle("at-front", index <= 0);
-    bookWrap.classList.toggle("at-back", index >= PAGE_COUNT - 1);
-    // Center the lone cover / back cover (inline style applies reliably; the CSS rule did not)
-    bookWrap.style.transform =
-      index <= 0 ? "translateX(-25%) scale(var(--zoom))" :
-      index >= PAGE_COUNT - 1 ? "translateX(25%) scale(var(--zoom))" :
-      "scale(var(--zoom))";
+    const atFront = index <= 0, atBack = index >= PAGE_COUNT - 1;
+    bookWrap.classList.toggle("at-front", atFront);
+    bookWrap.classList.toggle("at-back", atBack);
+    // Center the lone cover / back cover AND scale it up to fill the screen (inline = reliable).
+    // Scale respects both width and height so it never gets clipped on any phone.
+    if (atFront || atBack) {
+      const stage = document.querySelector("#stage");
+      const pageW = bookWrap.offsetWidth / 2, pageH = bookWrap.offsetHeight;
+      let s = Math.min(stage.clientWidth * 0.94 / pageW, stage.clientHeight * 0.94 / pageH);
+      s = Math.max(1, Math.min(s, 2.4));
+      bookWrap.style.transformOrigin = atFront ? "75% 50%" : "25% 50%";
+      bookWrap.style.transform = `translateX(${atFront ? "-25%" : "25%"}) scale(calc(var(--zoom) * ${s.toFixed(3)}))`;
+    } else {
+      bookWrap.style.transformOrigin = "50% 50%";
+      bookWrap.style.transform = "scale(var(--zoom))";
+    }
   }
 
   pageFlip.on("flip", event => {
@@ -95,7 +104,7 @@
   pageFlip.on("init", event => updateControls(event.data.page));
   pageFlip.on("changeState", event => {
     bookWrap.classList.toggle("is-flipping", event.data === "flipping");
-    if (event.data === "flipping") bookWrap.style.transform = "scale(var(--zoom))";
+    if (event.data === "flipping") { bookWrap.style.transformOrigin = "50% 50%"; bookWrap.style.transform = "scale(var(--zoom))"; }
   });
 
   previousButtons.forEach(button => button.addEventListener("click", () => pageFlip.flipPrev("top")));

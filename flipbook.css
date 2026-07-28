@@ -99,15 +99,41 @@ button { color: inherit; }
 .book-wrap.at-front:not(.is-flipping) .book { clip-path: inset(0 0 0 50%); }
 .book-wrap.at-back:not(.is-flipping) .book { clip-path: inset(0 50% 0 0); }
 
-/* Single-page (portrait) layout — JS sets data-flip so CSS and the engine always agree */
+/* MOBILE: swipe carousel — one page per screen, snap-to-page. JS sets data-flip. */
 :root[data-flip="portrait"] .book-wrap {
-  --page-w: min(calc(100vw - 20px), calc((100dvh - 150px) * var(--paper-ratio)));
-  --page-h: calc(var(--page-w) / var(--paper-ratio));
-  width: var(--page-w);
-  height: var(--page-h);
+  position: absolute;
+  inset: 0;
+  transform: none;
 }
-:root[data-flip="portrait"] .book-wrap.at-front:not(.is-flipping) .book,
-:root[data-flip="portrait"] .book-wrap.at-back:not(.is-flipping) .book { clip-path: none; }
+:root[data-flip="portrait"] .book {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  filter: none;
+  scrollbar-width: none;
+}
+:root[data-flip="portrait"] .book::-webkit-scrollbar { display: none; }
+:root[data-flip="portrait"] .magazine-page {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  background: transparent;
+  overflow: visible;
+}
+:root[data-flip="portrait"] .magazine-page img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
 .page-arrow {
   position: absolute;

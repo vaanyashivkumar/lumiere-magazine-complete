@@ -16,16 +16,13 @@ body {
   color: #f6f3ee;
   font: 14px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
 }
 
 button, input { font: inherit; }
 button { color: inherit; }
 
 .viewer {
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   display: grid;
   grid-template-rows: 64px 1fr 74px;
   background:
@@ -42,7 +39,7 @@ button { color: inherit; }
   border-color: rgba(255,255,255,.08);
 }
 
-.topbar { justify-content: space-between; padding: 0 24px; padding-top: env(safe-area-inset-top); border-bottom: 1px solid rgba(255,255,255,.08); }
+.topbar { justify-content: space-between; padding: 0 24px; border-bottom: 1px solid rgba(255,255,255,.08); }
 .brand { display: flex; align-items: center; gap: 11px; letter-spacing: .02em; }
 .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--accent); color: var(--accent); font: 22px/1 Georgia, serif; }
 .brand strong, .brand small { display: block; }
@@ -63,7 +60,7 @@ button { color: inherit; }
 
 .stage { position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden; perspective: 2200px; }
 .book-wrap {
-  --page-h: min(calc(100dvh - 190px), calc((100vw - 150px) / (2 * var(--paper-ratio))));
+  --page-h: min(calc(100vh - 180px), calc((100vw - 150px) / (2 * var(--paper-ratio))));
   --page-w: calc(var(--page-h) * var(--paper-ratio));
   position: relative;
   width: calc(var(--page-w) * 2);
@@ -81,8 +78,6 @@ button { color: inherit; }
 .book canvas { filter: saturate(1.01); }
 .book .stf__wrapper { background: transparent !important; }
 .magazine-page {
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   background: #fff;
 }
@@ -98,44 +93,6 @@ button { color: inherit; }
 
 .book-wrap.at-front:not(.is-flipping) .book { clip-path: inset(0 0 0 50%); }
 .book-wrap.at-back:not(.is-flipping) .book { clip-path: inset(0 50% 0 0); }
-
-/* MOBILE: swipe carousel — one page per screen, snap-to-page. JS sets data-flip. */
-:root[data-flip="portrait"] .book-wrap {
-  position: absolute;
-  inset: 0;
-  width: auto;
-  height: auto;
-  transform: none;
-}
-:root[data-flip="portrait"] .book {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  filter: none;
-  scrollbar-width: none;
-}
-:root[data-flip="portrait"] .book::-webkit-scrollbar { display: none; }
-:root[data-flip="portrait"] .magazine-page {
-  flex: 0 0 100%;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
-  background: transparent;
-  overflow: visible;
-}
-:root[data-flip="portrait"] .magazine-page img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
 
 .page-arrow {
   position: absolute;
@@ -160,30 +117,32 @@ button { color: inherit; }
 .hint { position: absolute; bottom: 14px; color: rgba(255,255,255,.5); font-size: 11px; letter-spacing: .05em; transition: opacity .6s; }
 .hint.hidden { opacity: 0; }
 
-.controls { justify-content: center; gap: 10px; padding: 12px 22px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(255,255,255,.08); }
+.controls { justify-content: center; gap: 10px; padding: 12px 22px; border-top: 1px solid rgba(255,255,255,.08); }
 .transport { width: 42px; height: 42px; border-radius: 50%; font: 31px/1 Georgia, serif; }
 .text-button { padding: 8px 12px; border-radius: 8px; color: var(--muted); font-size: 12px; }
 .progress-group { width: min(460px, 46vw); display: grid; gap: 8px; text-align: center; }
 .progress-group span { color: #d7d2cb; font-size: 11px; letter-spacing: .05em; }
 input[type="range"] { width: 100%; height: 3px; accent-color: var(--accent); cursor: pointer; }
 
-/* ---------- MOBILE / narrow: single-page view ---------- */
-/* Cosmetic-only adjustments for narrow screens (page layout is handled by data-flip above) */
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .viewer { grid-template-rows: 54px 1fr 66px; }
-  .topbar { padding: 0 12px; padding-top: env(safe-area-inset-top); }
+  .topbar { padding: 0 12px; }
   .brand small { display: none; }
-
+  .book-wrap { --page-h: min(calc(100vh - 155px), calc((100vw - 28px) / (2 * var(--paper-ratio)))); }
   .page-arrow { width: 40px; height: 58px; border: 0; background: transparent; }
   .page-arrow.previous { left: 0; }
   .page-arrow.next { right: 0; }
   .page-arrow span { font-size: 38px; text-shadow: 0 2px 8px #000; }
   .controls { gap: 2px; padding-inline: 6px; }
   .text-button { display: none; }
+  .progress-group { width: calc(100vw - 110px); }
   .hint { display: none; }
-  .top-actions output { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
 }
+
+/* Center the lone cover / back cover (otherwise it sits on one half of the screen) */
+.book-wrap.at-front:not(.is-flipping) { transform: translateX(-25%) scale(var(--zoom)); }
+.book-wrap.at-back:not(.is-flipping)  { transform: translateX(25%)  scale(var(--zoom)); }

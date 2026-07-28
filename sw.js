@@ -4,7 +4,7 @@
        cache is only the offline fallback (no manual cache-busting needed).
      - Page images, icons, vendor lib: cache-first    -> instant + offline after first view.
    Bump CACHE only if you want to force-drop all cached images. */
-const CACHE = "lumiere-complete-v4";
+const CACHE = "lumiere-complete-v5";
 const SHELL = [
   "index.html",
   "flipbook.css",

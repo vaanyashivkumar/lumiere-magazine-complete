@@ -42,12 +42,12 @@
     width: 595,
     height: 842,
     size: "stretch",
-    minWidth: 100,
+    minWidth: 250,
     maxWidth: 1190,
-    minHeight: 140,
+    minHeight: 200,
     maxHeight: 1684,
     showCover: true,
-    usePortrait: false,
+    usePortrait: true,
     drawShadow: true,
     maxShadowOpacity: 0.62,
     flippingTime: 1050,
@@ -68,6 +68,7 @@
   function pageText(index) {
     if (index <= 0) return "Cover · Page 1 of 92";
     if (index >= PAGE_COUNT - 1) return "Back cover · Page 92 of 92";
+    if (window.innerWidth <= 720) return `Page ${index + 1} of ${PAGE_COUNT}`; // single-page (mobile)
     const left = index % 2 === 0 ? index : index + 1;
     return `Pages ${left}–${Math.min(left + 1, PAGE_COUNT)} of 92`;
   }
@@ -83,7 +84,7 @@
     bookWrap.classList.toggle("at-back", atBack);
     // Center the lone cover / back cover AND scale it up to fill the screen (inline = reliable).
     // Scale respects both width and height so it never gets clipped on any phone.
-    if (atFront || atBack) {
+    if (window.innerWidth > 720 && (atFront || atBack)) {
       const stage = document.querySelector("#stage");
       const pageW = bookWrap.offsetWidth / 2, pageH = bookWrap.offsetHeight;
       let s = Math.min(stage.clientWidth * 0.94 / pageW, stage.clientHeight * 0.94 / pageH);

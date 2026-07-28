@@ -42,9 +42,9 @@
     width: 595,
     height: 842,
     size: "stretch",
-    minWidth: 280,
+    minWidth: 100,
     maxWidth: 1190,
-    minHeight: 396,
+    minHeight: 140,
     maxHeight: 1684,
     showCover: true,
     usePortrait: false,
@@ -80,6 +80,11 @@
     nextButtons.forEach(button => { button.disabled = index >= PAGE_COUNT - 1; });
     bookWrap.classList.toggle("at-front", index <= 0);
     bookWrap.classList.toggle("at-back", index >= PAGE_COUNT - 1);
+    // Center the lone cover / back cover (inline style applies reliably; the CSS rule did not)
+    bookWrap.style.transform =
+      index <= 0 ? "translateX(-25%) scale(var(--zoom))" :
+      index >= PAGE_COUNT - 1 ? "translateX(25%) scale(var(--zoom))" :
+      "scale(var(--zoom))";
   }
 
   pageFlip.on("flip", event => {
@@ -90,6 +95,7 @@
   pageFlip.on("init", event => updateControls(event.data.page));
   pageFlip.on("changeState", event => {
     bookWrap.classList.toggle("is-flipping", event.data === "flipping");
+    if (event.data === "flipping") bookWrap.style.transform = "scale(var(--zoom))";
   });
 
   previousButtons.forEach(button => button.addEventListener("click", () => pageFlip.flipPrev("top")));

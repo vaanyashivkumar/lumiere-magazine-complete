@@ -31,7 +31,10 @@ function refHost(ref) {
   if (!ref) return "Direct";
   try {
     const h = new URL(ref).hostname.replace(/^www\./, "");
-    return h && !/lumiere-magazine-complete\.vercel\.app$/i.test(h) ? h : "Direct";
+    if (!h || /lumiere-magazine-complete\.vercel\.app$/i.test(h)) return "Direct";
+    // bound referrer cardinality/garbage so the hash can't be flooded with junk hostnames
+    if (h.length > 48 || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(h)) return "Other";
+    return h;
   } catch { return "Direct"; }
 }
 
@@ -52,7 +55,8 @@ module.exports = async (req, res) => {
   if (body.type === "vital" && body.name && Number.isFinite(+body.value)) {
     const m = String(body.name).toUpperCase();
     if (["LCP", "CLS", "INP", "FCP", "TTFB"].includes(m)) {
-      const scaled = Math.max(0, Math.round(+body.value * 1000)); // store ints (ms, or CLS*1000)
+      const val = Math.min(Math.max(0, +body.value), 600000); // clamp to sane range (anti-poisoning)
+      const scaled = Math.round(val * 1000); // store ints (ms, or CLS*1000)
       cmds.push(["INCR", `vital:${m}:count`]);
       cmds.push(["INCRBY", `vital:${m}:sum`, scaled]);
       cmds.push(["LPUSH", `vital:${m}:samples`, scaled]);

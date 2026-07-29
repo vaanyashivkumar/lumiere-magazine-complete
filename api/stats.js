@@ -34,9 +34,9 @@ function percentile(sortedAsc, p) {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  const key = req.headers["x-admin-key"] || (req.query && req.query.key) || "";
+  const key = req.headers["x-admin-key"] || ""; // header only — never accept the key from the URL
   if (!ADMIN_KEY || !safeEqual(key, ADMIN_KEY)) {
-    return res.status(401).json({ error: "unauthorized", hint: "append ?key=YOUR_SECRET to the URL" });
+    return res.status(401).json({ error: "unauthorized" });
   }
   if (!REST_URL || !REST_TOKEN) {
     return res.status(200).json({ configured: false, note: "Connect an Upstash Redis store in Vercel to start collecting." });

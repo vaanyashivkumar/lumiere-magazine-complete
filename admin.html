@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
   <title>Lumiere — Admin Analytics</title>
   <style>
     :root { color-scheme: dark; --accent: #d9b86c; --good: #4ea86b; --warn: #d1a141; --poor: #cf5b57; --muted: #a8a4a0; --card: #1a1815; }
@@ -73,7 +74,9 @@
   <script>
     const root = document.getElementById("root");
     const updated = document.getElementById("updated");
-    const key = new URLSearchParams(location.search).get("key") || location.hash.replace(/^#/, "");
+    // Read the key ONLY from the URL hash (#…). The hash is never sent to the server,
+    // so it never lands in access logs or Referer headers.
+    const key = decodeURIComponent(location.hash.replace(/^#/, ""));
 
     const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString());
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -91,7 +94,7 @@
       if (!entries.length) return '<div style="color:var(--muted)">No data yet</div>';
       const max = Math.max(...entries.map((e) => e[1]), 1);
       return '<div class="bars">' + entries.map(([k, v]) => {
-        const label = opts.flag ? (flagEmoji(k) + " " + k) : esc(k);
+        const label = opts.flag ? (flagEmoji(k) + " " + esc(k)) : esc(k);
         return `<div class="barrow"><div class="lbl"><span>${label}</span></div><div class="n">${fmt(v)}</div>
           <div class="track"><i style="width:${Math.max(3, (v / max) * 100)}%"></i></div></div>`;
       }).join("") + "</div>";
@@ -143,7 +146,7 @@
     }
 
     async function load() {
-      if (!key) { return message("Secret key required", "Open this page with your admin link, e.g. <code>/admin?key=YOUR_SECRET</code>."); }
+      if (!key) { return message("Secret key required", "Open this page with your admin link, e.g. <code>/admin#YOUR_SECRET</code> (the part after the # is your key)."); }
       root.innerHTML = '<div class="msg"><div class="spinner"></div></div>';
       try {
         const res = await fetch("/api/stats", { headers: { "x-admin-key": key }, cache: "no-store" });

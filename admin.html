@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Lumiere — Admin Analytics</title>
+  <style>
+    :root { color-scheme: dark; --accent: #d9b86c; --good: #4ea86b; --warn: #d1a141; --poor: #cf5b57; --muted: #a8a4a0; --card: #1a1815; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #12100f; color: #f6f3ee; font: 14px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 22px 18px 60px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--accent); color: var(--accent); font: 22px/1 Georgia, serif; }
+    .brand strong { display: block; font: 16px/1.1 Georgia, serif; letter-spacing: .1em; text-transform: uppercase; }
+    .brand small { color: var(--muted); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+    .tools { display: flex; align-items: center; gap: 10px; }
+    button { font: inherit; color: inherit; background: #262320; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    button:hover { border-color: var(--accent); color: var(--accent); }
+    .msg { background: var(--card); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 26px; text-align: center; color: var(--muted); }
+    .msg h2 { color: #f6f3ee; margin: 0 0 8px; }
+    .grid { display: grid; gap: 14px; }
+    .cards { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 16px 18px; }
+    .card .k { color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .card .v { font: 30px/1.1 Georgia, serif; margin-top: 6px; }
+    .card .v small { font-size: 13px; color: var(--muted); }
+    section { margin-top: 26px; }
+    section > h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+    .panel { background: var(--card); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 16px 18px; }
+    .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .bars { display: grid; gap: 8px; }
+    .barrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .barrow .lbl { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .barrow .lbl span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track { position: relative; height: 8px; background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; grid-column: 1 / -1; }
+    .track > i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px; }
+    .barrow .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .vitals { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .vital .v { font-size: 24px; }
+    .pill { display: inline-block; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; margin-top: 8px; }
+    .pill.good { background: rgba(78,168,107,.16); color: var(--good); }
+    .pill.warn { background: rgba(209,161,65,.16); color: var(--warn); }
+    .pill.poor { background: rgba(207,91,87,.16); color: var(--poor); }
+    .pill.none { background: rgba(255,255,255,.06); color: var(--muted); }
+    .chart { width: 100%; height: 160px; display: block; }
+    .chart .bar { fill: var(--accent); opacity: .85; }
+    .foot { margin-top: 30px; color: var(--muted); font-size: 12px; text-align: center; }
+    .spinner { width: 26px; height: 26px; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <div><strong>Lumiere</strong><small>Admin analytics</small></div>
+      </div>
+      <div class="tools">
+        <span id="updated" style="color:var(--muted);font-size:12px"></span>
+        <button id="refresh" title="Refresh">↻ Refresh</button>
+      </div>
+    </header>
+    <div id="root"><div class="msg"><div class="spinner"></div></div></div>
+    <div class="foot">Self-hosted, cookieless analytics for the Lumiere flipbook · counts the Vercel deployment.</div>
+  </div>
+
+  <script>
+    const root = document.getElementById("root");
+    const updated = document.getElementById("updated");
+    const key = new URLSearchParams(location.search).get("key") || location.hash.replace(/^#/, "");
+
+    const fmt = (n) => (n == null ? "—" : Number(n).toLocaleString());
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    // Web Vitals rating thresholds (Google), in real units (ms for time, unitless for CLS): [good ≤, poor >]
+    const TH = { LCP: [2500, 4000], INP: [200, 500], CLS: [0.1, 0.25], FCP: [1800, 3000], TTFB: [800, 1800] };
+    function rating(m, p75) {
+      if (p75 == null) return "none";
+      const [g, p] = TH[m];
+      return p75 <= g ? "good" : p75 <= p ? "warn" : "poor";
+    }
+
+    function barList(obj, opts) {
+      const entries = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).slice(0, opts.limit || 8);
+      if (!entries.length) return '<div style="color:var(--muted)">No data yet</div>';
+      const max = Math.max(...entries.map((e) => e[1]), 1);
+      return '<div class="bars">' + entries.map(([k, v]) => {
+        const label = opts.flag ? (flagEmoji(k) + " " + k) : esc(k);
+        return `<div class="barrow"><div class="lbl"><span>${label}</span></div><div class="n">${fmt(v)}</div>
+          <div class="track"><i style="width:${Math.max(3, (v / max) * 100)}%"></i></div></div>`;
+      }).join("") + "</div>";
+    }
+    function flagEmoji(cc) {
+      if (!cc || cc.length !== 2 || cc === "??") return "🏳️";
+      return String.fromCodePoint(...[...cc.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+    }
+
+    function chart(daily) {
+      const w = 100, h = 100, n = daily.length, max = Math.max(...daily.map((d) => d.views), 1);
+      const bw = w / n;
+      const bars = daily.map((d, i) => {
+        const bh = (d.views / max) * (h - 6);
+        return `<rect class="bar" x="${(i * bw + bw * 0.12).toFixed(2)}" y="${(h - bh).toFixed(2)}" width="${(bw * 0.76).toFixed(2)}" height="${bh.toFixed(2)}" rx="0.6"><title>${d.day}: ${d.views} views, ${d.visitors} visitors</title></rect>`;
+      }).join("");
+      return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${bars}</svg>
+        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:6px">
+        <span>${daily[0]?.day.slice(5) || ""}</span><span>last 14 days</span><span>${daily[n - 1]?.day.slice(5) || ""}</span></div>`;
+    }
+
+    function render(d) {
+      const vitalCard = (m) => {
+        const p75 = (d.vitals[m] || {}).p75; // already in real units from the API (ms, or unitless for CLS)
+        const cls = rating(m, p75);
+        const disp = p75 == null ? "—" : (m === "CLS" ? p75.toFixed(3) : Math.round(p75) + " ms");
+        return `<div class="card vital"><div class="k">${m}</div><div class="v">${disp}</div>
+          <span class="pill ${cls}">${cls === "none" ? "no data" : cls === "warn" ? "needs work" : cls}</span></div>`;
+      };
+      root.innerHTML = `
+        <div class="grid cards">
+          <div class="card"><div class="k">Total views</div><div class="v">${fmt(d.totalViews)}</div></div>
+          <div class="card"><div class="k">Unique visitors</div><div class="v">${fmt(d.uniqueVisitors)}</div></div>
+          <div class="card"><div class="k">Today</div><div class="v">${fmt(d.daily[d.daily.length - 1]?.views)} <small>views</small></div></div>
+        </div>
+        <section><h3>Views — last 14 days</h3><div class="panel">${chart(d.daily)}</div></section>
+        <section><h3>Performance (Core Web Vitals · p75)</h3><div class="grid vitals">${["LCP", "INP", "CLS", "FCP", "TTFB"].map(vitalCard).join("")}</div></section>
+        <section><h3>Audience</h3><div class="cols">
+          <div class="panel"><div class="k" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Countries</div>${barList(d.countries, { flag: true })}</div>
+          <div class="panel"><div class="k" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Referrers</div>${barList(d.referrers, {})}</div>
+          <div class="panel"><div class="k" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Devices</div>${barList(d.devices, {})}</div>
+          <div class="panel"><div class="k" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Browsers</div>${barList(d.browsers, {})}</div>
+        </div></section>`;
+      updated.textContent = "Updated " + new Date(d.generatedAt).toLocaleTimeString();
+    }
+
+    function message(title, body) {
+      root.innerHTML = `<div class="msg"><h2>${esc(title)}</h2><div>${body}</div></div>`;
+    }
+
+    async function load() {
+      if (!key) { return message("Secret key required", "Open this page with your admin link, e.g. <code>/admin?key=YOUR_SECRET</code>."); }
+      root.innerHTML = '<div class="msg"><div class="spinner"></div></div>';
+      try {
+        const res = await fetch("/api/stats", { headers: { "x-admin-key": key }, cache: "no-store" });
+        if (res.status === 401) return message("Access denied", "That secret key is wrong or missing.");
+        if (!res.ok) return message("Error", "Server returned " + res.status + ". If you just deployed, wait a moment and refresh.");
+        const d = await res.json();
+        if (d.configured === false) return message("Almost there", "The analytics <b>database isn't connected yet</b>. In Vercel → your project → <b>Storage</b>, create a free <b>Upstash Redis</b> store and connect it, then redeploy.");
+        if (d.error) return message("Store unreachable", "The database is connected but couldn't be read (" + esc(d.error) + "). Check the Upstash store in Vercel.");
+        render(d);
+      } catch (e) {
+        message("Network error", "Couldn't reach /api/stats. This page only works on the Vercel deployment.");
+      }
+    }
+
+    document.getElementById("refresh").addEventListener("click", load);
+    load();
+  </script>
+</body>
+
+</html>

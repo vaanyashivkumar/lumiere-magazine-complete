@@ -4,7 +4,7 @@
        cache is only the offline fallback (no manual cache-busting needed).
      - Page images, icons, vendor lib: cache-first    -> instant + offline after first view.
    Bump CACHE only if you want to force-drop all cached images. */
-const CACHE = "lumiere-complete-v12";
+const CACHE = "lumiere-complete-v13";
 const SHELL = [
   "index.html",
   "flipbook.css",
@@ -61,6 +61,7 @@ self.addEventListener("fetch", event => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+  if (url.pathname.startsWith("/api/")) return; // never cache API calls — always hit the network
 
   if (req.mode === "navigate") {
     event.respondWith(networkFirst(req, "index.html"));

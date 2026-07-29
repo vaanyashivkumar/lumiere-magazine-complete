@@ -73,6 +73,10 @@
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
+
+  <!-- Self-hosted analytics → feeds the private /admin dashboard (Vercel deploy only). -->
+  <script defer src="vendor/web-vitals.iife.js"></script>
+  <script defer src="analytics.js?v=1"></script>
 </body>
 
 </html>
